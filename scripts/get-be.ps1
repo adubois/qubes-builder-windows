@@ -188,23 +188,25 @@ Remove-Item -Recurse -Force $tmpDir -ErrorAction SilentlyContinue | Out-Null
 New-Item $tmpDir -ItemType Directory | Out-Null
 Write-Host "[*] Tmp dir: $tmpDir"
 
+# installing dependencies
 # verification hashes are embedded here to keep the script self-contained
+
 $pkgName = "7zip"
-$url = "http://downloads.sourceforge.net/sevenzip/7za920.zip"
+$url = "https://downloads.sourceforge.net/sevenzip/7za920.zip"
 $file = DownloadFile $url
 VerifyFile $file "9ce9ce89ebc070fea5d679936f21f9dde25faae0"
 UnpackZip $file $tmpDir
 $7zip = Join-Path $tmpDir "7za.exe"
 
 $pkgName = "msys"
-$url = "http://downloads.sourceforge.net/project/mingwbuilds/external-binary-packages/msys%2B7za%2Bwget%2Bsvn%2Bgit%2Bmercurial%2Bcvs-rev13.7z"
+$url = "https://downloads.sourceforge.net/project/mingwbuilds/external-binary-packages/msys%2B7za%2Bwget%2Bsvn%2Bgit%2Bmercurial%2Bcvs-rev13.7z"
 $file = DownloadFile $url
 VerifyFile $file "ed6f1ec0131530122d00eed096fbae7eb76f8ec9"
 Unpack7z $file $tmpDir
 $msysDir = (Join-Path $tmpDir "msys")
 
 $pkgName = "mingw64"
-$url = "http://sourceforge.net/projects/mingwbuilds/files/host-windows/releases/4.8.1/64-bit/threads-win32/seh/x64-4.8.1-release-win32-seh-rev5.7z"
+$url = "https://sourceforge.net/projects/mingwbuilds/files/host-windows/releases/4.8.1/64-bit/threads-win32/seh/x64-4.8.1-release-win32-seh-rev5.7z"
 $file = DownloadFile $url
 VerifyFile $file "53886dd1646aded889e6b9b507cf5877259342f2"
 $mingwArchive = $file
@@ -254,10 +256,9 @@ if ($verify)
 	else
 	{
 		$pkgName = "GnuPG"
-		$url = "http://files.gpg4win.org/gpg4win-2.2.1.exe"
+		$url = "https://files.gpg4win.org/gpg4win-2.3.4.exe"
 		$file = DownloadFile $url
-		VerifyFile $file "6fe64e06950561f2183caace409f42be0a45abdf"
-
+		VerifyFile $file "26c38609dd4e67bbee65091d09f35356dcac0b58"
 		Write-Host "[*] Installing GnuPG..."
 		$gpgDir = Join-Path $prereqsDir "gpg"
 		Start-Process -FilePath $file -Wait -PassThru -ArgumentList @("/S", "/D=$gpgDir") | Out-Null
@@ -303,8 +304,13 @@ CreateShortcuts "qubes-msys.lnk" "$msysDir\msys.bat"
 # generate code signing certificate
 Write-Host "[*] Generating code-signing certificate (use no password)..."
 $wdkKey = "HKLM:SOFTWARE\Microsoft\Windows Kits\Installed Roots"
-$wdkPath = (Get-ItemProperty -Path $wdkKey).KitsRoot81
-$wdkPath = Join-Path $wdkPath "bin\x64\"
+$wdkPath = (Get-ItemProperty -Path $wdkKey).KitsRoot10
+$wdkPath = Join-Path $wdkPath "bin"
+$wdkVer = Get-ChildItem -Path $wdkkey -Name
+$wdkPath = Join-Path $wdkPath $wdkVer
+$wdkPath = Join-Path $wdkPath "x64"
+
+Write-Host "PATH= $wdkPath"
 echo $wdkPath
 & $wdkPath\makecert.exe -sv $builderDir\qwt.pvk -n "CN=Qubes Test Cert" $builderDir\qwt.cer -r
 & $wdkPath\pvk2pfx.exe -pvk $builderDir\qwt.pvk -spc $builderDir\qwt.cer -pfx $builderDir\qwt.pfx
