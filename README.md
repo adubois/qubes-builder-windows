@@ -41,20 +41,34 @@ Building Qubes Windows Tools from a vanilla Windows install (work in progres)
 Install Git for windows in default directory
 
 `mkdir c:\QubesOS`
+
 `cd c:\QubesOS`
-Download qubes-builder-windows/scripts/get-be.ps1 and save it in c:\QubesOS (TODO, verify signature)
-launch msys via shortcut
-cd /c/C/QubesOS/qubes-builder
-cp example-configs/qubes-os-master.conf builder.conf
+
+Download `qubes-builder-windows/scripts/get-be.ps1` and save it in `c:\QubesOS` (TODO, verify signature)
+
+Launch msys via shortcut
+
+`cd /c/C/QubesOS/qubes-builder`
+
+`cp example-configs/qubes-os-master.conf builder.conf`
+
 edit builder.conf (remove comments for the windows components)
-check git is here ls /c/Program\ Files/Git/bin
-export PATH=$PATH:/c/Programs\ Files/Git/bin
-make COMPONENTS="builder-windows" get-sources
-cp qubes-src/builder-windows/windows-tools.conf builder.conf
+
+check git is here `ls /c/Program\ Files/Git/bin`
+
+`export PATH=$PATH:/c/Programs\ Files/Git/bin`
+
+`make COMPONENTS="builder-windows" get-sources`
+
+`cp qubes-src/builder-windows/windows-tools.conf builder.conf`
+
 edit builder.conf and uncomment the section mark in comments to be uncommented
-cd qubes-src/vmm-xen-windows-pvdrivers
-make
-cd /c/C/QubesOS/qubes-builder
+
+`cd qubes-src/vmm-xen-windows-pvdrivers`
+
+`make`
+
+`cd /c/C/QubesOS/qubes-builder`
 
 [1] https://www.visualstudio.com/en-us/products/visual-studio-community-vs.aspx
 
