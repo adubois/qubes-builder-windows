@@ -40,6 +40,8 @@ Building Qubes Windows Tools from a vanilla Windows install (work in progres)
 
 Install Git for windows in default directory
 
+Install Visual Studio 2013 community edition in c:\vs2013
+
 `mkdir c:\QubesOS`
 
 `cd c:\QubesOS`
