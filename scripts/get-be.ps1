@@ -145,6 +145,30 @@ Set-Location $scriptDir
 # log everything from this script
 $Host.UI.RawUI.BufferSize.Width = 500
 
+# check if Visual Studio 2013 Community Edition is installed
+$vs2013RegistryPath = "HKLM:SOFTWARE\Wow6432Node\Microsoft\Windows\CurrentVersion\Uninstall\vs2013"
+$vs2013Installed = Test-Path $vs2013RegistryPath
+if ($vs2013Installed)
+{
+	$vs2013Dir = (Get-ItemProperty $gpgRegistryPath).InstallLocation
+	# additional sanity check
+	if (!(Test-Path "$vs2013Dir\bin\vs2013.exe"))
+	{
+		$vs2013Installed = $false
+	}
+}
+
+if ($vs2013Installed)
+{
+	Write-Host "[*] Microsoft Visual Studio 2013 Community Edition is already installed."
+}
+else
+{
+	Write-Host "[*] Please install Microsoft Visual Studio 2013 Community Edition"
+	Write-Host "[*] ISO Image available here: http://go.microsoft.com/?linkid=9863609"
+	Exit 1
+}
+
 if ($builder)
 {
     # use pased value for already existing qubes-builder directory
