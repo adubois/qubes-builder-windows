@@ -146,13 +146,14 @@ Set-Location $scriptDir
 $Host.UI.RawUI.BufferSize.Width = 500
 
 # check if Visual Studio 2013 Community Edition is installed
-$vs2013RegistryPath = "HKLM:SOFTWARE\Wow6432Node\Microsoft\Windows\CurrentVersion\Uninstall\vs2013"
+$vs2013RegistryPath = "HKLM:SOFTWARE\Wow6432Node\Microsoft\VisualStudio\12.0"
 $vs2013Installed = Test-Path $vs2013RegistryPath
+
 if ($vs2013Installed)
 {
-	$vs2013Dir = (Get-ItemProperty $gpgRegistryPath).InstallLocation
+	$vs2013Dir = (Get-ItemProperty $vs2013RegistryPath).InstallDir
 	# additional sanity check
-	if (!(Test-Path "$vs2013Dir\bin\vs2013.exe"))
+	if (!(Test-Path "$vs2013Dir\devenv.exe"))
 	{
 		$vs2013Installed = $false
 	}
@@ -160,13 +161,51 @@ if ($vs2013Installed)
 
 if ($vs2013Installed)
 {
-	Write-Host "[*] Microsoft Visual Studio 2013 Community Edition is already installed."
+	Write-Host "[*] Microsoft Visual Studio 2013 Community Edition seems to be installed"
 }
 else
 {
 	Write-Host "[*] Please install Microsoft Visual Studio 2013 Community Edition"
 	Write-Host "[*] ISO Image available here: http://go.microsoft.com/?linkid=9863609"
 	Exit 1
+}
+
+# check if Windows Kits 8.1 is installed
+$wdk81RegistryPath = "HKLM:SOFTWARE\Wow6432Node\Microsoft\Microsoft SDKs\Windows\v8.1"
+$wdk81Installed = Test-Path $wdk81RegistryPath
+
+if ($wdk81Installed)
+{
+	$wdk81Dir = (Get-ItemProperty $wdk81RegistryPath).InstallationFolder
+	# additional sanity check
+	if (!(Test-Path "$wdk81Dir\bin\x64\makecert.exe"))
+	{
+		$wdk81Installed = $false
+	}
+}
+
+if ($wdk81Installed)
+{
+	Write-Host "[*] Microsoft Windows Kits 8.1 seems to be installed"
+}
+else
+{
+	Write-Host "[*] Please install Microsoft Windows Kits 8.1"
+	Exit 1
+}
+
+# check if Git is installed
+$gitRegistryPath = "HKLM:SOFTWARE\GitForWindows"
+$gitInstalled = Test-Path $gitRegistryPath
+
+if ($gitInstalled)
+{
+	$gitDir = (Get-ItemProperty $gitRegistryPath).InstallPath
+	# additional sanity check
+	if (!(Test-Path "$gitDir\bin\git.exe"))
+	{
+		$gitInstalled = $false
+	}
 }
 
 if ($builder)
