@@ -48,6 +48,8 @@ Install Visual Studio 2013 community edition in c:\vs2013
 
 Download `qubes-builder-windows/scripts/get-be.ps1` and save it in `c:\QubesOS` (TODO, verify signature)
 
+`powershell -ExecutionPolicy bypass -f get-be.ps1`
+
 Launch msys via shortcut
 
 `cd /c/C/QubesOS/qubes-builder`
