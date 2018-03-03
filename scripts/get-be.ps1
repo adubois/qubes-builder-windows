@@ -218,6 +218,30 @@ else
 	Exit 1
 }
 
+# check if Cygwin64 is installed
+$cygwinRegistryPath = "HKLM:SOFTWARE\Cygwin\Installations"
+$cygwinInstalled = Test-Path $cygwinRegistryPath
+
+if ($cygwinInstalled)
+{
+	$cygwinDir = (Get-ItemProperty $cygwinRegistryPath).e022582115c10879
+    $cygwinDir = $cygwinDir.SubString($cygwinDir.IndexOf(":") - 1, $cygwinDir.Length - $cygwinDir.IndexOf(":") + 1)
+	# additional sanity check
+	if (!(Test-Path "$cygwinDir\bin\bash.exe"))
+	{
+		$cygwinInstalled = $false
+	}
+}
+
+if ($cygwinInstalled)
+{
+	Write-Host "[*] Cygwin seems to be installed ($cygwinDir)"
+}
+else
+{
+	Write-Host "[*] Please install Cygwin (https://cygwin.com/)"
+	Exit 1
+}
 
 if ($builder)
 {
@@ -262,51 +286,19 @@ Remove-Item -Recurse -Force $tmpDir -ErrorAction SilentlyContinue | Out-Null
 New-Item $tmpDir -ItemType Directory | Out-Null
 Write-Host "[*] Tmp dir: $tmpDir"
 
-# installing dependencies
-# verification hashes are embedded here to keep the script self-contained
-
-$pkgName = "7zip"
-$url = "https://downloads.sourceforge.net/sevenzip/7za920.zip"
-$file = DownloadFile $url
-VerifyFile $file "9ce9ce89ebc070fea5d679936f21f9dde25faae0"
-UnpackZip $file $tmpDir
-$7zip = Join-Path $tmpDir "7za.exe"
-
-$pkgName = "msys"
-$url = "https://downloads.sourceforge.net/project/mingwbuilds/external-binary-packages/msys%2B7za%2Bwget%2Bsvn%2Bgit%2Bmercurial%2Bcvs-rev13.7z"
-$file = DownloadFile $url
-VerifyFile $file "ed6f1ec0131530122d00eed096fbae7eb76f8ec9"
-Unpack7z $file $tmpDir
-$msysDir = (Join-Path $tmpDir "msys")
-
-$pkgName = "mingw64"
-$url = "https://sourceforge.net/projects/mingwbuilds/files/host-windows/releases/4.8.1/64-bit/threads-win32/seh/x64-4.8.1-release-win32-seh-rev5.7z"
-$file = DownloadFile $url
-VerifyFile $file "53886dd1646aded889e6b9b507cf5877259342f2"
-$mingwArchive = $file
-Unpack7z $file $msysDir
-
-Move-Item (Join-Path $msysDir "mingw64") (Join-Path $msysDir "mingw")
-
 if (! $builder)
 {
     # fetch qubes-builder off the repo
     $repo = "git://github.com/$GIT_SUBDIR/qubes-builder.git"
     $builderDir = Join-Path $scriptDir "qubes-builder"
-    Write-Host "[*] Cloning qubes-builder to $builderDir"
-    $gitPath = Join-Path $msysDir "bin\git.exe"
+    Write-Host "[*] Cloning qubes-builder to $builderDir using Git $gitDir directory"
+    $gitPath = Join-Path $gitDir "bin\git.exe"
     & $gitPath clone $repo $builderDir
 }
 
 $prereqsDir = Join-Path $builderDir "cache\windows-prereqs"
-Write-Host "[*] Moving msys to $prereqsDir..."
 New-Item -ItemType Directory $prereqsDir -ErrorAction SilentlyContinue | Out-Null
-# move msys/mingw to qubes-builder/cache/windows-prereqs, this will be the default "clean" environment
-# copy instead of move, sometimes windows defender locks executables for a while
-Copy-Item -Path $msysDir -Destination $prereqsDir -Recurse
-Copy-Item -Path $7zip -Destination $prereqsDir
-# update msys path
-$msysDir = Join-Path $prereqsDir "msys"
+$msysDir = $cygwinDir
 
 if ($verify)
 {
@@ -338,7 +330,7 @@ if ($verify)
 		Start-Process -FilePath $file -Wait -PassThru -ArgumentList @("/S", "/D=$gpgDir") | Out-Null
 	}
 	$gpg = Join-Path $gpgDir "pub\gpg.exe"
-
+    
 	Set-Location $builderDir
 
 	Write-Host "[*] Importing Qubes OS signing keys..."
