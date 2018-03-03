@@ -208,6 +208,17 @@ if ($gitInstalled)
 	}
 }
 
+if ($gitInstalled)
+{
+	Write-Host "[*] Git seems to be installed"
+}
+else
+{
+	Write-Host "[*] Please install Git (https://git-scm.com/)"
+	Exit 1
+}
+
+
 if ($builder)
 {
     # use pased value for already existing qubes-builder directory
@@ -234,7 +245,7 @@ else # check if we're invoked from existing qubes-builder
     }
     else
     {
-        Start-Transcript -Path "win-initialize-be.log"
+        Start-Transcript -Path "win-initialize-be.log" 
         Write-Host "[*] Running from clean state, need to clone qubes-builder."
     }
 }
